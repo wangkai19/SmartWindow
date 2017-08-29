@@ -1,5 +1,5 @@
-#include <SoftwareSerial.h>
 #include <dht11.h>
+#include <SoftwareSerial.h>
 #include <Servo.h>
 
 #define Guangmin A5
@@ -8,7 +8,7 @@
 /*引脚３被用于舵机*/
 #define DHT11PIN 4                          //dht11数据端使用引脚4
 
-SoftwareSerial mySerial(1, 2);//RX,TX；开软串口 
+SoftwareSerial mySerial(8, 9);//RX,TX；开软串口 
 
 Servo myservo;                             //舵机的旋转角度
 dht11 DHT11;                               //温湿度对象
@@ -90,7 +90,7 @@ void setTime()
   
 }
 
-
+//温湿度模块
 void getDht11()
 {
    int temp = DHT11.read(DHT11PIN);                  //temp用来记录pin2口读取到的成功情况
@@ -109,7 +109,9 @@ void setup()
   Serial.begin(9600);  
   myservo.attach(3);                          //舵机由引脚3控制  
   pinMode(FengMing,OUTPUT);                   //蜂鸣器设置       
-  pinMode(People,INPUT);                       //设置人体感应为输入模式   
+  pinMode(People,INPUT);                      //设置人体感应为输入模式  
+  pinMode(8, INPUT);                          //rx
+  pinMode(9, OUTPUT);                         //tx
  
 }
 
@@ -117,11 +119,6 @@ void loop()
 {
   sun();  
   findPeople();
-
+  getDht11();
 }
-
-
-
-
-
 
