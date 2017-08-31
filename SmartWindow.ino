@@ -291,12 +291,13 @@ void readMes()
 void setup()
 {
   
-  Serial.begin(9600);  
-  Ro = MQCalibration(MQ9PIN);                  //Calibrating the sensor. Please make sure the sensor is in clean air 
+  Serial.begin(115200);  
+  mySerial.begin(115200);
+  //Ro = MQCalibration(MQ9PIN);                  //Calibrating the sensor. Please make sure the sensor is in clean air 
   myservo.attach(3);                          //舵机由引脚3控制  
   pinMode(FengMing,OUTPUT);                   //蜂鸣器设置       
   pinMode(People,INPUT);                      //设置人体感应为输入模式  
-  pinMode(Flame,INPUT);                       //将火焰传感器设置为输入模式
+  //pinMode(Flame,INPUT);                       //将火焰传感器设置为输入模式
   pinMode(8, INPUT);                          //rx
   pinMode(9, OUTPUT);                         //tx
  
@@ -304,10 +305,12 @@ void setup()
 
 void loop()
 {
-  sun();  
-  findPeople();
-  getDht11();
-  getCo();
+  mySerial.println("wangkai");
+  //sun();  
+  //findPeople();
+ // getDht11();
+ // getCo();
+ // readMes();
   
 }
 
