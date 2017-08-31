@@ -7,7 +7,7 @@
 #define Flame A2
 #define FengMing 2
 /*引脚３被用于舵机*/
-#define DHT11PIN 4                          //dht11数据端使用引脚4
+#define DHT11PIN 5                          //dht11数据端使用引脚4
 
 
 /***************************************************************
@@ -130,14 +130,20 @@ void setTime()
 ****************************************************************/
 void getDht11()
 {
-   int temp = DHT11.read(DHT11PIN);                  //temp用来记录pin2口读取到的成功情况
-
+   DHT11.read(DHT11PIN);                  //temp用来记录pin2口读取到的成功情况
+   char msg_HUM[50];
+   char msg_TEM[50];
+   //Serial.println((int)DHT11.humidity);
+   snprintf (msg_HUM, 75, "Hum: %d ",(int)DHT11.humidity);                          
+   mySerial.println(msg_HUM);
+   snprintf (msg_TEM, 75, "Tem: %d ",(int)DHT11.temperature);                          
+   mySerial.println(msg_TEM);
    //在串口打印出温湿度
-  mySerial.print("Humidity (%): ");
+  /*mySerial.print("Humidity (%): ");
   mySerial.println((float)DHT11.humidity, 2);       //dht11类中的变量humdidity（湿度）
   mySerial.print("Temperature (oC): ");
   mySerial.println((float)DHT11.temperature, 2);    //dut11类中的变量temperature（温度）
- 
+ */
 }
 
 /********************************************************************************
@@ -209,9 +215,16 @@ int MQGetGasPercentage(float rs_ro_ratio, int gas_id)
 //打印出co等相关信息
 void getCo()
 {
-   mySerial.print("LPG:");                              //丙烷和丁烷
-   mySerial.print(MQGetGasPercentage(MQRead(MQ9PIN)/Ro,GAS_LPG) );          //单位为ppm 1L水中含有１毫克溶质
-   mySerial.print( "ppm" );                             
+   char msg_LPG[50];
+   char msg_CAR[50];
+   char msg_MET[50];
+   snprintf (msg_LPG, 75, "LPG: %d ppm",MQGetGasPercentage(MQRead(MQ9PIN)/Ro,GAS_LPG));                          
+   mySerial.println(msg_LPG);
+   snprintf (msg_CAR,75,"CAR: %d ppm",MQGetGasPercentage(MQRead(MQ9PIN)/Ro,GAS_CARBON_MONOXIDE));
+   mySerial.println(msg_CAR);
+   snprintf (msg_MET,75,"MET: %d ppm",MQGetGasPercentage(MQRead(MQ9PIN)/Ro,GAS_METHANE) );
+   mySerial.println(msg_MET);
+   /*
    mySerial.print("    ");     
    mySerial.print("CARBON_MONOXIDE:");                 //一氧化碳
    mySerial.print(MQGetGasPercentage(MQRead(MQ9PIN)/Ro,GAS_CARBON_MONOXIDE) );
@@ -220,15 +233,14 @@ void getCo()
    mySerial.print("METHANE:");                         //甲烷
    mySerial.print(MQGetGasPercentage(MQRead(MQ9PIN)/Ro,GAS_METHANE) );
    mySerial.print( "ppm" );
-   mySerial.print("\n");
+   mySerial.print("\n");*/
    //delay(200);
-
-  /* if(MQGetGasPercentage(MQRead(MQ9PIN)/Ro > 0 && flag == 0)
-   {
-      forward();                              　　　　//开窗
-      flag = 1;                             　　　  　//窗已开
+   int i = MQGetGasPercentage(MQRead(MQ9PIN)/Ro,GAS_CARBON_MONOXIDE);
+   if(i > 4 && flag == 0)
+   { 
+      forward();
+      flag = 1; 
    }
-   */
 }
 
 /***************************************************************
@@ -237,11 +249,13 @@ void getCo()
 void getFire()
 {
   fire = analogRead(Flame);
-  if(fire > 600 && flag == 0)              //当阳光充足且窗户关闭时
+  //Serial.println(fire);
+  if(fire < 600 && flag == 0)              //当阳光充足且窗户关闭时
     {
       forward();                              //开窗
       flag = 1;                               //窗已开
     }
+  
 }
 
 /****************************************************************
@@ -291,13 +305,13 @@ void readMes()
 void setup()
 {
   
-  Serial.begin(115200);  
+  Serial.begin(9600);  
   mySerial.begin(115200);
-  //Ro = MQCalibration(MQ9PIN);                  //Calibrating the sensor. Please make sure the sensor is in clean air 
+  Ro = MQCalibration(MQ9PIN);                  //Calibrating the sensor. Please make sure the sensor is in clean air 
   myservo.attach(3);                          //舵机由引脚3控制  
   pinMode(FengMing,OUTPUT);                   //蜂鸣器设置       
   pinMode(People,INPUT);                      //设置人体感应为输入模式  
-  //pinMode(Flame,INPUT);                       //将火焰传感器设置为输入模式
+  pinMode(Flame,INPUT);                       //将火焰传感器设置为输入模式
   pinMode(8, INPUT);                          //rx
   pinMode(9, OUTPUT);                         //tx
  
@@ -305,12 +319,24 @@ void setup()
 
 void loop()
 {
-  mySerial.println("wangkai");
-  //sun();  
-  //findPeople();
- // getDht11();
- // getCo();
+  int i = 0;
+  char n = 0;
+  while(mySerial.available() > 0)
+  {
+      n = mySerial.read();
+      if(n >= 'a' && n <= 'z')
+        get_message[i++] = n;       
+  }
+  get_message[i] = '\0';
+  i = 0;
+  Serial.println(get_message);
+  delay(500);
+  mySerial.println("wangkai19");
+  sun();  
+  findPeople();
+  getDht11();
+  getFire();
+  getCo();
  // readMes();
   
 }
-
