@@ -35,8 +35,9 @@ Servo myservo;                             //舵机的旋转角度
 dht11 DHT11;                               //温湿度对象
 
 int flag = 0;                              //用来标志窗户的开关　０为关闭状态　１为打开状态
-float Ro = 10;                            //Ro is initialized to 10 kilo ohms    
+float Ro = 10;                             //Ro is initialized to 10 kilo ohms    
 int fire = 0;                              //火焰
+char get_message[128];                     //接收到的字符数组
 
 /**************************************************************
                   使电机正转180度　打开窗户
@@ -140,7 +141,7 @@ void getDht11()
 }
 
 /********************************************************************************
-                        一氧化碳模块　
+                        一氧化碳模块　当co超标时报警
 **********************************************************************************/
 float MQResistanceCalculation(int raw_adc)
 {
@@ -208,25 +209,26 @@ int MQGetGasPercentage(float rs_ro_ratio, int gas_id)
 //打印出co等相关信息
 void getCo()
 {
-   Serial.print("LPG:");                              //丙烷和丁烷
-   Serial.print(MQGetGasPercentage(MQRead(MQ9PIN)/Ro,GAS_LPG) );          //单位为ppm 1L水中含有１毫克溶质
-   Serial.print( "ppm" );                             
-   Serial.print("    ");     
-   Serial.print("CARBON_MONOXIDE:");                 //一氧化碳
-   Serial.print(MQGetGasPercentage(MQRead(MQ9PIN)/Ro,GAS_CARBON_MONOXIDE) );
-   Serial.print( "ppm" );
-   Serial.print("    ");   
-   Serial.print("METHANE:");                         //甲烷
-   Serial.print(MQGetGasPercentage(MQRead(MQ9PIN)/Ro,GAS_METHANE) );
-   Serial.print( "ppm" );
-   Serial.print("\n");
+   mySerial.print("LPG:");                              //丙烷和丁烷
+   mySerial.print(MQGetGasPercentage(MQRead(MQ9PIN)/Ro,GAS_LPG) );          //单位为ppm 1L水中含有１毫克溶质
+   mySerial.print( "ppm" );                             
+   mySerial.print("    ");     
+   mySerial.print("CARBON_MONOXIDE:");                 //一氧化碳
+   mySerial.print(MQGetGasPercentage(MQRead(MQ9PIN)/Ro,GAS_CARBON_MONOXIDE) );
+   mySerial.print( "ppm" );
+   mySerial.print("    ");   
+   mySerial.print("METHANE:");                         //甲烷
+   mySerial.print(MQGetGasPercentage(MQRead(MQ9PIN)/Ro,GAS_METHANE) );
+   mySerial.print( "ppm" );
+   mySerial.print("\n");
    //delay(200);
-   /*if(MQGetGasPercentage(MQRead(MQ9PIN)/Ro > ? && flag == 0)
+
+  /* if(MQGetGasPercentage(MQRead(MQ9PIN)/Ro > 0 && flag == 0)
    {
       forward();                              　　　　//开窗
       flag = 1;                             　　　  　//窗已开
-   }*/
-   
+   }
+   */
 }
 
 /***************************************************************
@@ -245,7 +247,40 @@ void getFire()
 /****************************************************************
  *                  从窗口上读取数据　然后开关窗户 
  ***************************************************************/
+void readMes()
+{
+  String openW = "open";
+  String closeW = "close";
+  String temp = "";
+  
+  int i = 0;
+  //int n = 0;
+  while(mySerial.available() > 0)
+  {
+      get_message[i++] =  mySerial.read();       
+  }
+  get_message[i] = '\0';
+  i = 0;
+  //Serial.println(get_message);
+  
+  for(int j = 0;j < 128;j++)
+   {
+      temp += get_message[j];   
+   }
+  
+  if(temp == openW && flag == 0)
+  {
+      forward();
+      flag = 1;
+  }
 
+  else if(temp == closeW && flag == 1)
+  {
+      backward();
+      flag = 0;
+  }
+   
+}
 
 
  
