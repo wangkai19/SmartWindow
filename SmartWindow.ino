@@ -134,9 +134,9 @@ void getDht11()
    char msg_HUM[50];
    char msg_TEM[50];
    //Serial.println((int)DHT11.humidity);
-   snprintf (msg_HUM, 75, "Hum: %d P",(int)DHT11.humidity);                          
+   snprintf (msg_HUM, 75, "Hum: %d ",(int)DHT11.humidity);                          
    mySerial.println(msg_HUM);
-   snprintf (msg_TEM, 75, "Tem: %d C",(int)DHT11.temperature);                          
+   snprintf (msg_TEM, 75, "Tem: %d ",(int)DHT11.temperature);                          
    mySerial.println(msg_TEM);
    //在串口打印出温湿度
   /*mySerial.print("Humidity (%): ");
