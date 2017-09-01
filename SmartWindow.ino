@@ -38,14 +38,14 @@ int flag = 0;                              //用来标志窗户的开关　０�
 float Ro = 10;                             //Ro is initialized to 10 kilo ohms    
 int fire = 0;                              //火焰
 char get_message[128];                     //接收到的字符数组
-
+char temp[4];
 /**************************************************************
                   使电机正转180度　打开窗户
 ***************************************************************/
 //使电机正转180度　打开窗户
 void forward()
 {
-  for (int pos = 0; pos <= 180; pos += 1) { 
+  for (int pos = 0; pos <= 90; pos += 1) { 
    
     myservo.write(pos);              
     delay(15);                       
@@ -55,7 +55,7 @@ void forward()
 //使电机反转180度　关闭窗户
 void backward()
 {
-   for (int pos = 180; pos >= 0; pos -= 1) { 
+   for (int pos = 90; pos >= 0; pos -= 1) { 
     myservo.write(pos);             
     delay(15);                      
   }
@@ -134,9 +134,9 @@ void getDht11()
    char msg_HUM[50];
    char msg_TEM[50];
    //Serial.println((int)DHT11.humidity);
-   snprintf (msg_HUM, 75, "Hum: %d ",(int)DHT11.humidity);                          
+   snprintf (msg_HUM, 75, "Hum: %d P",(int)DHT11.humidity);                          
    mySerial.println(msg_HUM);
-   snprintf (msg_TEM, 75, "Tem: %d ",(int)DHT11.temperature);                          
+   snprintf (msg_TEM, 75, "Tem: %d C",(int)DHT11.temperature);                          
    mySerial.println(msg_TEM);
    //在串口打印出温湿度
   /*mySerial.print("Humidity (%): ");
@@ -263,19 +263,30 @@ void getFire()
  ***************************************************************/
 void readMes()
 {
-  String openW = "open";
-  String closeW = "close";
+  String openW = "ope";
+  String closeW = "clo";
   String temp = "";
   
   int i = 0;
   //int n = 0;
-  while(mySerial.available() > 0)
+  /*while(mySerial.available() > 0)
   {
       get_message[i++] =  mySerial.read();       
   }
   get_message[i] = '\0';
   i = 0;
-  //Serial.println(get_message);
+  //Serial.println(get_message);*/
+
+  char n = 0;
+  while(mySerial.available() > 0)
+  {
+      n = mySerial.read();
+      if(n >= 'a' && n <= 'z')
+        get_message[i++] = n;       
+  }
+  get_message[i] = '\0';
+  i = 0;
+  delay(500);
   
   for(int j = 0;j < 128;j++)
    {
@@ -323,20 +334,48 @@ void loop()
   char n = 0;
   while(mySerial.available() > 0)
   {
-      n = mySerial.read();
+      n = mySerial.read();    
       if(n >= 'a' && n <= 'z')
         get_message[i++] = n;       
   }
   get_message[i] = '\0';
   i = 0;
   Serial.println(get_message);
+  
   delay(500);
+  
+   for(int j = 0;j < 3;j++)
+   {
+      temp[j] = get_message[j];   
+   }
+  Serial.print("temp:");
+  Serial.println(temp);
+  if(temp[0] == 'o' && temp[1] == 'p' && temp[2] == 'e' && flag == 0)
+  {
+      Serial.println("forward()");
+      forward();
+      flag = 1;
+  }
+
+  else if(temp[0] == 'c' && temp[1] == 'l' && temp[2] == 'o' && flag == 1)
+  {
+      Serial.println("backward()");
+      backward();
+      flag = 0;
+  }
+  memset(get_message,0,128);
+  memset(temp,0,3);
+ // readMes();
   mySerial.println("wangkai19");
   sun();  
   findPeople();
   getDht11();
   getFire();
   getCo();
- // readMes();
+  /*
+  for(int j = 0;j <128;j++)
+  {
+    get_message[j] = '\0';  
+  }*/
   
 }
